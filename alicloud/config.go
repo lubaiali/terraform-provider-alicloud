@@ -21,9 +21,11 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/resource"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cms"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/dds"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ots"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/pvtz"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/rds"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/slb"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
@@ -78,6 +80,8 @@ type AliyunClient struct {
 	cmsconn         *cms.Client
 	logconn         *sls.Client
 	fcconn          *fc.Client
+	pvtzconn        *pvtz.Client
+	ddsconn         *dds.Client
 }
 
 // Client for AliyunClient
@@ -143,7 +147,15 @@ func (c *Config) Client() (*AliyunClient, error) {
 	if err != nil {
 		return nil, err
 	}
+	pvtzconn, err := c.pvtzConn()
+	if err != nil {
+		return nil, err
+	}
 	fcconn, err := c.fcConn()
+	if err != nil {
+		return nil, err
+	}
+	ddsconn, err := c.ddsConn()
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +181,9 @@ func (c *Config) Client() (*AliyunClient, error) {
 		otsconn:         otsconn,
 		cmsconn:         cmsconn,
 		logconn:         c.logConn(),
+		ddsconn:         ddsconn,
 		fcconn:          fcconn,
+		pvtzconn:        pvtzconn,
 	}, nil
 }
 
@@ -247,34 +261,31 @@ func (c *Config) ossConn() (*oss.Client, error) {
 
 	endpointClient := location.NewClient(c.AccessKey, c.SecretKey)
 	endpointClient.SetSecurityToken(c.SecurityToken)
-	args := &location.DescribeEndpointsArgs{
-		Id:          c.Region,
-		ServiceCode: "oss",
-		Type:        "openAPI",
-	}
-	invoker := NewInvoker()
-	var endpoints *location.DescribeEndpointsResponse
-	if err := invoker.Run(func() error {
-		es, err := endpointClient.DescribeEndpoints(args)
-		if err != nil {
-			return err
-		}
-		endpoints = es
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("Describe endpoint using region: %#v got an error: %#v.", c.Region, err)
-	}
-	endpointItem := endpoints.Endpoints.Endpoint
-	var endpoint string
-	if endpointItem == nil || len(endpointItem) <= 0 {
-		log.Printf("Cannot find endpoint in the region: %#v", c.Region)
-		endpoint = ""
-	} else {
-		endpoint = strings.ToLower(endpointItem[0].Protocols.Protocols[0]) + "://" + endpointItem[0].Endpoint
-	}
-
+	endpoint := LoadEndpoint(c.RegionId, OSSCode)
 	if endpoint == "" {
-		endpoint = fmt.Sprintf("http://oss-%s.aliyuncs.com", c.Region)
+		args := &location.DescribeEndpointsArgs{
+			Id:          c.Region,
+			ServiceCode: "oss",
+			Type:        "openAPI",
+		}
+		invoker := NewInvoker()
+		var endpoints *location.DescribeEndpointsResponse
+		if err := invoker.Run(func() error {
+			es, err := endpointClient.DescribeEndpoints(args)
+			if err != nil {
+				return err
+			}
+			endpoints = es
+			return nil
+		}); err != nil {
+			log.Printf("[DEBUG] Describe endpoint using region: %#v got an error: %#v.", c.Region, err)
+		} else {
+			if endpoints != nil && len(endpoints.Endpoints.Endpoint) > 0 {
+				endpoint = strings.ToLower(endpoints.Endpoints.Endpoint[0].Protocols.Protocols[0]) + "://" + endpoints.Endpoints.Endpoint[0].Endpoint
+			} else {
+				endpoint = fmt.Sprintf("http://oss-%s.aliyuncs.com", c.Region)
+			}
+		}
 	}
 
 	log.Printf("[DEBUG] Instantiate OSS client using endpoint: %#v", endpoint)
@@ -327,6 +338,16 @@ func (c *Config) cmsConn() (*cms.Client, error) {
 	return cms.NewClientWithOptions(c.RegionId, getSdkConfig(), c.getAuthCredential(false))
 }
 
+func (c *Config) pvtzConn() (*pvtz.Client, error) {
+	endpoint := LoadEndpoint(c.RegionId, PVTZCode)
+	if endpoint != "" {
+		endpoints.AddEndpointMapping(c.RegionId, string(PVTZCode), endpoint)
+	} else {
+		endpoints.AddEndpointMapping(c.RegionId, string(PVTZCode), "pvtz.aliyuncs.com")
+	}
+	return pvtz.NewClientWithOptions(c.RegionId, getSdkConfig(), c.getAuthCredential(true))
+}
+
 func (c *Config) logConn() *sls.Client {
 	endpoint := c.LogEndpoint
 	if endpoint == "" {
@@ -361,6 +382,14 @@ func (c *Config) fcConn() (client *fc.Client, err error) {
 	client.Config.UserAgent = getUserAgent()
 	client.Config.SecurityToken = c.SecurityToken
 	return
+}
+
+func (c *Config) ddsConn() (*dds.Client, error) {
+	endpoint := LoadEndpoint(c.RegionId, DDSCode)
+	if endpoint != "" {
+		endpoints.AddEndpointMapping(c.RegionId, string(DDSCode), endpoint)
+	}
+	return dds.NewClientWithOptions(c.RegionId, getSdkConfig(), c.getAuthCredential(true))
 }
 
 func getSdkConfig() *sdk.Config {

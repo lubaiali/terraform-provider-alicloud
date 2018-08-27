@@ -84,6 +84,8 @@ const (
 	ScalingActivityInProgress                   = "ScalingActivityInProgress"
 	EssThrottling                               = "Throttling"
 	InvalidScalingRuleIdNotFound                = "InvalidScalingRuleId.NotFound"
+	InvalidLifecycleHookIdNotFound              = "InvalidLifecycleHookId.NotExist"
+
 	// rds
 	InvalidDBInstanceIdNotFound            = "InvalidDBInstanceId.NotFound"
 	InvalidDBNameNotFound                  = "InvalidDBName.NotFound"
@@ -165,6 +167,9 @@ const (
 	ApplicationErrorIgnore       = "Unable to reach primary cluster manager"
 	ApplicationConfirmConflict   = "Conflicts with unconfirmed updates for operation"
 
+	// privatezone
+	ZoneNotExists    = "Zone.NotExists"
+	ZoneVpcNotExists = "ZoneVpc.NotExists.VpcId"
 	// log
 	ProjectNotExist      = "ProjectNotExist"
 	IndexConfigNotExist  = "IndexConfigNotExist"
@@ -182,6 +187,21 @@ const (
 	FunctionNotFound = "FunctionNotFound"
 	TriggerNotFound  = "TriggerNotFound"
 	AccessDenied     = "AccessDenied"
+
+	// Vpn
+	VpnNotFound              = "InvalidVpnGatewayInstanceId.NotFound"
+	VpnForbidden             = "Forbidden"
+	VpnForbiddenRelease      = "ForbiddenRelease"
+	VpnForbiddenSubUser      = "Forbbiden.SubUser"
+	CgwNotFound              = "InvalidCustomerGatewayInstanceId.NotFound"
+	ResQuotaFull             = "Resource.QuotaFull"
+	VpnConnNotFound          = "InvalidVpnConnectionInstanceId.NotFound"
+	InvalidIpAddress         = "InvalidIpAddress.AlreadyExist"
+	SslVpnServerNotFound     = "InvalidSslVpnServerId.NotFound"
+	SslVpnClientCertNofFound = "InvalidSslVpnClientCertId.NotFound"
+	VpnConfiguring           = "VpnGateway.Configuring"
+	VpnInvalidSpec           = "InvalidSpec.NotFound"
+	VpnEnable                = "enable"
 )
 
 var SlbIsBusy = []string{"SystemBusy", "OperationBusy", "ServiceIsStopping", "BackendServer.configuring", "ServiceIsConfiguring"}

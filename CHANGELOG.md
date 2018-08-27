@@ -2,10 +2,25 @@
 
 FEATURES:
 
+- **New Data Source:** `alicloud_mongo_instances` ([#221](https://github.com/terraform-providers/terraform-provider-alicloud/pull/221))
+- **New Data Source:** `alicloud_pvtz_zone_records` ([#288](https://github.com/terraform-providers/terraform-provider-alicloud/pull/288))
+- **New Data Source:** `alicloud_pvtz_zones` ([#287](https://github.com/terraform-providers/terraform-provider-alicloud/pull/287))
+- **New Resource:** `alicloud_pvtz_zone_record` ([#286](https://github.com/terraform-providers/terraform-provider-alicloud/pull/286))
+- **New Resource:** `alicloud_pvtz_zone_attachment` ([#285](https://github.com/terraform-providers/terraform-provider-alicloud/pull/285))
+- **New Resource:** `alicloud_pvtz_zone` ([#284](https://github.com/terraform-providers/terraform-provider-alicloud/pull/284))
+- **New Resource:** `alicloud_ess_lifecycle_hook` ([#283](https://github.com/terraform-providers/terraform-provider-alicloud/pull/283))
 - **New Data Source:** `alicloud_router_interfaces` ([#269](https://github.com/terraform-providers/terraform-provider-alicloud/pull/269))
 
 IMPROVEMENTS:
 
+- Check pvtzconn error ([#295](https://github.com/terraform-providers/terraform-provider-alicloud/pull/295))
+- For internationalize tests ([#294](https://github.com/terraform-providers/terraform-provider-alicloud/pull/294))
+- Improve data source docs ([#293](https://github.com/terraform-providers/terraform-provider-alicloud/pull/293))
+- Add SLB PayByBandwidth test case ([#292](https://github.com/terraform-providers/terraform-provider-alicloud/pull/292))
+- Update vpc sdk to support new resource VPN gateway ([#291](https://github.com/terraform-providers/terraform-provider-alicloud/pull/291))
+- Improve snat entry test case ([#290](https://github.com/terraform-providers/terraform-provider-alicloud/pull/290))
+- Allow empty list of SLBs as arg to ESG ([#289](https://github.com/terraform-providers/terraform-provider-alicloud/pull/289))
+- Improve docs vroute_entry ([#281](https://github.com/terraform-providers/terraform-provider-alicloud/pull/281))
 - Improve examples/router_interface ([#278](https://github.com/terraform-providers/terraform-provider-alicloud/pull/278))
 - Improve SLB instance test case ([#274](https://github.com/terraform-providers/terraform-provider-alicloud/pull/274))
 - Improve alicloud_router_interface's test case ([#272](https://github.com/terraform-providers/terraform-provider-alicloud/pull/272))
@@ -25,7 +40,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
-
+- Fix getting oss endpoint timeout error ([#282](https://github.com/terraform-providers/terraform-provider-alicloud/pull/282))
 - Fix router interface connection error when 'opposite_interface_owner_id' is empty ([#277](https://github.com/terraform-providers/terraform-provider-alicloud/pull/277))
 - Fix router interface connection error and deleting error ([#275](https://github.com/terraform-providers/terraform-provider-alicloud/pull/275))
 - Fix disk detach error and improve test using dynamic zone and region ([#273](https://github.com/terraform-providers/terraform-provider-alicloud/pull/273))

@@ -134,6 +134,34 @@ func TestAccAlicloudEssScalingGroup_slb(t *testing.T) {
 
 }
 
+func TestAccAlicloudEssScalingGroup_slbempty(t *testing.T) {
+	var sg ess.ScalingGroup
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+		},
+
+		// module name
+		IDRefreshName: "alicloud_ess_scaling_group.scaling",
+
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckEssScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccEssScalingGroup_slbempty,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEssScalingGroupExists(
+						"alicloud_ess_scaling_group.scaling", &sg),
+					resource.TestCheckResourceAttr(
+						"alicloud_ess_scaling_group.scaling", "loadbalancer_ids.#", "0"),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccCheckEssScalingGroupExists(n string, d *ess.ScalingGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -374,9 +402,6 @@ resource "alicloud_ess_scaling_configuration" "foo" {
 `
 
 const testAccEssScalingGroup_slb = `
-provider "alicloud" {
-  region = "cn-hangzhou"
-}
 variable "name" {
 	default = "testAccEssScalingGroup_slb"
 }
@@ -418,6 +443,7 @@ resource "alicloud_ess_scaling_group" "scaling" {
   removal_policies = ["OldestInstance", "NewestInstance"]
   vswitch_ids = ["${alicloud_vswitch.vswitch.id}"]
   loadbalancer_ids = ["${alicloud_slb.instance.0.id}","${alicloud_slb.instance.1.id}"]
+  depends_on = ["alicloud_slb_listener.tcp"]
 }
 
 resource "alicloud_ess_scaling_configuration" "config" {
@@ -434,8 +460,7 @@ resource "alicloud_ess_scaling_configuration" "config" {
 resource "alicloud_slb" "instance" {
   count=2
   name = "${var.name}"
-  internet_charge_type = "paybytraffic"
-  internet = false
+  vswitch_id = "${alicloud_vswitch.vswitch.id}"
 }
 resource "alicloud_slb_listener" "tcp" {
   count = 2
@@ -445,5 +470,64 @@ resource "alicloud_slb_listener" "tcp" {
   protocol = "tcp"
   bandwidth = "10"
   health_check_type = "tcp"
+}
+`
+
+const testAccEssScalingGroup_slbempty = `
+provider "alicloud" {
+  region = "cn-hangzhou"
+}
+variable "name" {
+	default = "testAccEssScalingGroup_slbempty"
+}
+data "alicloud_images" "ecs_image" {
+  most_recent = true
+  name_regex =  "^centos_6\\w{1,5}[64].*"
+}
+// Zones data source for availability_zone
+data "alicloud_zones" "default" {
+  available_resource_creation = "VSwitch"
+}
+data "alicloud_instance_types" "default" {
+	availability_zone = "${data.alicloud_zones.default.zones.0.id}"
+	cpu_core_count = 1
+	memory_size = 2
+}
+// If there is not specifying vpc_id, the module will launch a new vpc
+resource "alicloud_vpc" "vpc" {
+  name = "${var.name}"
+  cidr_block = "172.16.0.0/12"
+}
+
+// According to the vswitch cidr blocks to launch several vswitches
+resource "alicloud_vswitch" "vswitch" {
+  vpc_id = "${alicloud_vpc.vpc.id}"
+  cidr_block = "172.16.0.0/16"
+  availability_zone = "${data.alicloud_zones.default.zones.0.id}"
+}
+
+resource "alicloud_security_group" "sg" {
+  name = "${var.name}"
+  vpc_id = "${alicloud_vpc.vpc.id}"
+}
+
+resource "alicloud_ess_scaling_group" "scaling" {
+  min_size = "1"
+  max_size = "1"
+  scaling_group_name = "${var.name}"
+  removal_policies = ["OldestInstance", "NewestInstance"]
+  vswitch_ids = ["${alicloud_vswitch.vswitch.id}"]
+  loadbalancer_ids = []
+}
+
+resource "alicloud_ess_scaling_configuration" "config" {
+  scaling_group_id = "${alicloud_ess_scaling_group.scaling.id}"
+  active = true
+  enable = true
+  image_id = "${data.alicloud_images.ecs_image.images.0.id}"
+  instance_type = "${data.alicloud_instance_types.default.instance_types.0.id}"
+  security_group_id = "${alicloud_security_group.sg.id}"
+  force_delete = "true"
+  internet_charge_type = "PayByTraffic"
 }
 `

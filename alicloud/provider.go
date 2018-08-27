@@ -91,7 +91,10 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_security_groups":      dataSourceAlicloudSecurityGroups(),
 			"alicloud_security_group_rules": dataSourceAlicloudSecurityGroupRules(),
 			"alicloud_db_instances":         dataSourceAlicloudDBInstances(),
+			"alicloud_pvtz_zones":           dataSourceAlicloudPvtzZones(),
+			"alicloud_pvtz_zone_records":    dataSourceAlicloudPvtzZoneRecords(),
 			"alicloud_router_interfaces":    dataSourceAlicloudRouterInterfaces(),
+			"alicloud_mongo_instances":      dataSourceAlicloudMongoInstances(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"alicloud_instance":                  resourceAliyunInstance(),
@@ -111,6 +114,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_ess_scaling_rule":          resourceAlicloudEssScalingRule(),
 			"alicloud_ess_schedule":              resourceAlicloudEssSchedule(),
 			"alicloud_ess_attachment":            resourceAlicloudEssAttachment(),
+			"alicloud_ess_lifecycle_hook":        resourceAlicloudEssLifecycleHook(),
 			"alicloud_vpc":                       resourceAliyunVpc(),
 			"alicloud_nat_gateway":               resourceAliyunNatGateway(),
 			// "alicloud_subnet" aims to match aws usage habit.
@@ -158,6 +162,9 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_ots_instance":                resourceAlicloudOtsInstance(),
 			"alicloud_ots_instance_attachment":     resourceAlicloudOtsInstanceAttachment(),
 			"alicloud_cms_alarm":                   resourceAlicloudCmsAlarm(),
+			"alicloud_pvtz_zone":                   resourceAlicloudPvtzZone(),
+			"alicloud_pvtz_zone_attachment":        resourceAlicloudPvtzZoneAttachment(),
+			"alicloud_pvtz_zone_record":            resourceAlicloudPvtzZoneRecord(),
 			"alicloud_log_project":                 resourceAlicloudLogProject(),
 			"alicloud_log_store":                   resourceAlicloudLogStore(),
 			"alicloud_log_store_index":             resourceAlicloudLogStoreIndex(),
@@ -165,7 +172,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_fc_service":                  resourceAlicloudFCService(),
 			"alicloud_fc_function":                 resourceAlicloudFCFunction(),
 			"alicloud_fc_trigger":                  resourceAlicloudFCTrigger(),
-			"alicloud_vpn":                         resourceAliyunVpn(),
+			"alicloud_vpn_gateway":                 resourceAliyunVpnGateway(),
 		},
 
 		ConfigureFunc: providerConfigure,
